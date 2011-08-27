@@ -36,7 +36,7 @@ function clean() {
 }
 
 
-function launchGame() {
+function runningBrushes() {
 	prepareGame();
 	startRandomWalk();
 	setInterval(iteration, 10);
