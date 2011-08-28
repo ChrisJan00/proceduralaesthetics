@@ -49,7 +49,7 @@ var CircleSquids = function() {
 		self.draw();
 		self.computeCircles();
 		//setTimeout(self.iteration, 10);
-		setInterval(self.iteration, 10);
+		setInterval(self.iteration, 15);
 	}
 
 	self.draw = function() {
