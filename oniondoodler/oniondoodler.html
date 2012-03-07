@@ -1,0 +1,110 @@
+<!--
+    Onion Doodler - Christiaan Janssen - July 2011
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<html>
+<head>
+<title>Onion Doodler</title>
+<style>
+.horzcenter {
+  text-align: center;
+  color: #FFFFFF;
+  font-family: sans-serif;
+}
+</style>
+<script type="text/javascript">
+var canvas, ctxt;
+var isPressed = false;
+var isMouseOut = false;
+var xoffset, yoffset;
+
+function begin() {
+  canvas = document.getElementById("canvas");
+  ctxt = canvas.getContext("2d");
+  
+  canvas.addEventListener('mousedown', pressed, false);
+  canvas.addEventListener('mouseup', released, false);
+  canvas.addEventListener('mousemove', moved, false);
+  canvas.addEventListener('mouseout', movedOut, false);
+  
+  var obj = canvas;
+  xoffset = 0;
+  yoffset = 0;
+  while (obj) {
+    xoffset += obj.offsetLeft;
+    yoffset += obj.offsetTop;
+    obj = obj.offsetParent;
+  }
+  ctxt.fillStyle = "#FFFFFF";
+  ctxt.fillRect(0, 0, canvas.width, canvas.height);
+  ctxt.fillStyle = "rgba(255,255,255,0.05)";
+  ctxt.strokeStyle = "#000000";
+  ctxt.lineWidth = 2.5;
+}
+
+function pressed( ev ) {
+  ctxt.beginPath();
+  ctxt.moveTo(getCoordX(ev), getCoordY(ev));
+  isPressed = true;
+}
+
+function released( ev ) {
+  moved(ev);
+  isPressed = false;
+  ctxt.stroke();
+  ctxt.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function moved( ev ) {
+  if (!isPressed) return;
+  if (isMouseOut) {
+    isMouseOut = false;
+    ctxt.moveTo(getCoordX(ev), getCoordY(ev));
+  } else {
+    ctxt.lineTo(getCoordX(ev), getCoordY(ev));
+  }
+}
+
+function movedOut( ev ) {
+  if (isPressed)
+    isMouseOut = true;
+}
+
+function getCoordX( ev ) {
+  if (ev.layerX || ev.layerX == 0) {
+    return ev.layerX - xoffset;
+  } else if (ev.offsetX || ev.offsetX == 0) {
+    return ev.offsetX;
+  }
+  return 0;
+}
+
+function getCoordY( ev ) {
+  if (ev.layerY || ev.layerY == 0) {
+    return ev.layerY - yoffset;
+  } else if (ev.offsetY || ev.offsetY == 0) {
+    return ev.offsetY;
+  }
+  return 0;
+}
+</script>
+</head>
+<body onload="begin()" bgColor="#000000">
+<div class="horzcenter"> <h1>Onion Doodler</h1>
+<canvas id="canvas" style="image-rendering: optimizespeed ! important;" width="800" height="600"></canvas>
+<h6>Instructions: Click and drag. Release to draw. Old strokes fade away. When done, right-click + "Save Image As...". Reload page to erase picture</h6>
+</div>
+</body>
+</html>
