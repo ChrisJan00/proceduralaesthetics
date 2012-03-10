@@ -90,9 +90,34 @@ var RunningBrushes = function() {
 	
 	self.draw = function(agent) {
 		self.ctxt.fillStyle = "rgba("+agent.red+","+agent.green+","+agent.blue+","+agent.alpha+")";
+		
+		// normal circle
 		self.ctxt.beginPath();
 		self.ctxt.arc(agent.x, agent.y, agent.radius, 0, Math.PI*2, true);
 		self.ctxt.fill();
+		
+		// off-limits
+		if (agent.x + agent.radius > self.canvas.width) {
+			self.ctxt.beginPath();
+			self.ctxt.arc(agent.x - self.canvas.width, agent.y, agent.radius, 0, Math.PI*2, true);
+			self.ctxt.fill();
+		}
+		if (agent.x - agent.radius < 0) {
+			self.ctxt.beginPath();
+			self.ctxt.arc(agent.x + self.canvas.width, agent.y, agent.radius, 0, Math.PI*2, true);
+			self.ctxt.fill();
+		}
+		if (agent.y + agent.radius > self.canvas.height) {
+			self.ctxt.beginPath();
+			self.ctxt.arc(agent.x, agent.y - self.canvas.height, agent.radius, 0, Math.PI*2, true);
+			self.ctxt.fill();
+		}
+		if (agent.y - agent.radius < 0) {
+			self.ctxt.beginPath();
+			self.ctxt.arc(agent.x, agent.y + self.canvas.height, agent.radius, 0, Math.PI*2, true);
+			self.ctxt.fill();
+		}
+	
 	}
 }
 
