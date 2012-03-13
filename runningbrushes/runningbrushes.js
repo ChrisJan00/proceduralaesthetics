@@ -1,23 +1,33 @@
+var isWebkit = navigator.userAgent.indexOf("AppleWebKit") > -1;
+
 var RunningBrushes = function() {
 	var self = this;
 	self.prepare = function() {
 	
 		self.canvas = document.getElementById("gameCanvas");
 		self.ctxt = self.canvas.getContext("2d");
+
+		// workaround for webkit antialias
+		self.originalWidth = self.canvas.width;
+		self.extraBorder = 0;
+		if (isWebkit) {
+			self.extraBorder = 10;
+			self.canvas.width += self.extraBorder;
+			self.canvas.style.width = self.canvas.width;
+		}
 	
 		//self.canvas.addEventListener('mousedown', startRandomWalk, false);
 		self.clean();
 	
 		self.agentCount = 15;
 		self.agents = [];
-		
 	}
 	
 	self.initAgent = function()
 	{
 		var agent = {}
-		agent.x = Math.random() * self.canvas.width;
-		agent.y = Math.random() * self.canvas.height;
+		agent.x = Math.random() * self.originalWidth;
+		agent.y = Math.random() * self.originalWidth;
 		agent.angle = Math.random() * Math.PI * 2;
 		agent.speed = Math.random() * 20;
 		agent.radius = Math.random() * 20 + 1;
@@ -34,7 +44,8 @@ var RunningBrushes = function() {
 	self.clean = function() {
 		self.ctxt.globalCompositeOperation = 'source-over';
 		self.ctxt.fillStyle="#B5D5F5";
-		self.ctxt.fillRect(0, 0, self.canvas.width, self.canvas.height);
+		self.ctxt.fillRect(self.extraBorder, 0, self.originalWidth, self.canvas.height);
+		self.ctxt.globalCompositeOperation = 'source-atop';
 	}
 	
 	
@@ -99,12 +110,12 @@ var RunningBrushes = function() {
 		// off-limits
 		if (agent.x + agent.radius > self.canvas.width) {
 			self.ctxt.beginPath();
-			self.ctxt.arc(agent.x - self.canvas.width, agent.y, agent.radius, 0, Math.PI*2, true);
+			self.ctxt.arc(agent.x - self.originalWidth, agent.y, agent.radius, 0, Math.PI*2, true);
 			self.ctxt.fill();
 		}
-		if (agent.x - agent.radius < 0) {
+		if (agent.x - agent.radius < self.extraBorder) {
 			self.ctxt.beginPath();
-			self.ctxt.arc(agent.x + self.canvas.width, agent.y, agent.radius, 0, Math.PI*2, true);
+			self.ctxt.arc(agent.x + self.originalWidth, agent.y, agent.radius, 0, Math.PI*2, true);
 			self.ctxt.fill();
 		}
 		if (agent.y + agent.radius > self.canvas.height) {
@@ -117,7 +128,6 @@ var RunningBrushes = function() {
 			self.ctxt.arc(agent.x, agent.y + self.canvas.height, agent.radius, 0, Math.PI*2, true);
 			self.ctxt.fill();
 		}
-	
 	}
 }
 
