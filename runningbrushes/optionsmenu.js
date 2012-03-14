@@ -5,6 +5,12 @@ var colors = {
 	darkGrey : "#444444"
 }
 
+var sliderTypes = {
+	integer : 1,
+	real : 2,
+	log : 3
+}
+
 var OptionsMenu = function(cnv) {
 	var self = this;
 	
@@ -12,27 +18,30 @@ var OptionsMenu = function(cnv) {
 	self.visible = false;
 	self.width = 320;
 	self.height = 300;
+	self.UIelements = [];
+	self.xoffset = 0;
+	self.yoffset = 0;
 	
 	self.resize = function(w,h) {
 		self.canvas.width = w;
 		self.canvas.height = h;
 		self.canvas.style.width = w;
 		self.canvas.style.height = h;
-	}
-	
-	self.init = function() {
-		self.UIelements = [];
-		
-		var obj = self.canvas;
-	  	self.xoffset = 0;
+		self.xoffset = 0;
 	  	self.yoffset = 0;
+	  	var obj = self.canvas;
 	  	while (obj) {
 	    	self.xoffset += obj.offsetLeft;
 	    	self.yoffset += obj.offsetTop;
 	    	obj = obj.offsetParent;
 	  	}
 	}
-
+	
+	self.updateSize = function() {
+		self.height = runningBrushes.canvas.height;
+		self.resize(self.width, self.height);
+		self.repaint();
+	}
 	
 	// show / hide
 	self.show = function() {
@@ -89,8 +98,8 @@ var OptionsMenu = function(cnv) {
 	self.readMousePos = function( ev )
 	{
 		if (ev.layerX || ev.layerX == 0) { // Firefox
-    		self.mouse.x = ev.layerX - self.xoffset + self.width/2;
-    		self.mouse.y = ev.layerY - self.yoffset + self.height/2;
+    		self.mouse.x = ev.layerX - self.xoffset;
+    		self.mouse.y = ev.layerY - self.yoffset;
   		} else if (ev.offsetX || ev.offsetX == 0) { // Opera
     		self.mouse.x = ev.offsetX;
     		self.mouse.y = ev.offsetY;
@@ -142,29 +151,70 @@ var OptionsMenu = function(cnv) {
 			var storedLastY = lastY;
 			for (var ii = 0; ii < buttonArray.length; ii++) {
 				lastY = storedLastY;
-				drawButton(4+ii*bw, bw-2, buttonArray[ii].label, buttonArray[ii].callback);
+				drawButton(4+ii*bw, bw-2, buttonArray[ii][0], buttonArray[ii][1]);
 			}
 		}
-		function drawSlider(label, minval, maxval, defval, updateFunc, islog) {
-			self.UIelements.push(new OptionSlider(self.canvas, 2,lastY+1,self.width-4,14, label, minval, maxval, defval, updateFunc, islog));
+		function drawSingleButton(label, callback) {
+			drawButtonRow([[label,callback]]);
+		}
+		function drawSlider(label, minval, maxval, defval, updateFunc, slidertype) {
+			self.UIelements.push(new OptionSlider(self.canvas, 2,lastY+1,self.width-4,14, label, minval, maxval, defval, updateFunc, slidertype));
 			lastY += 16;
 		}
+		function drawSpacer() { lastY += 16; }
 		
 		
 		///////////////////////////////////////
 		
-		drawLabel("test123");
-		drawButtonRow([ {label:"option 1",callback:self.doNothing }]);
-		drawButtonRow([ {label:"option 2",callback:self.doNothing }, {label:"option 3",callback:self.doNothing }])
-		drawLabel("awachuwaruwei");
-		drawButtonRow([ {label:"option 3",callback:self.doNothing }, {label:"option 4",callback:self.doNothing }])
-		drawLabel("and now a slider");
-		drawSlider("tonterida", 0.1, 1, 0.5, self.doNothing, false);
-		drawSlider("alpha", 0.1, 1, 0.5, self.doNothing, true);
+//		drawLabel("test123");
+//		drawButtonRow([ {label:"option 1",callback:self.doNothing }]);
+//		drawButtonRow([ {label:"option 2",callback:self.doNothing }, {label:"option 3",callback:self.doNothing }])
+//		drawLabel("awachuwaruwei");
+//		drawButtonRow([ {label:"option 3",callback:self.doNothing }, {label:"option 4",callback:self.doNothing }])
+//		drawLabel("and now a slider");
+//		drawSlider("tonterida", 0.1, 1, 0.5, self.doNothing, false);
+//		drawSlider("alpha", 0.1, 1, 0.5, self.doNothing, true);
 	
+		drawLabel("agent properties");
+		drawSlider("count", 1, 150, 15, runningBrushes.adjustAgentcount, sliderTypes.integer);
+		drawSlider("opacity",0.001, 1, 0.01, function(a){runningBrushes.alpha=a}, sliderTypes.log);
+		drawSpacer();
+		
+		drawLabel("agent change");
+		drawSlider("minRadius", 0.1, 10, 0.5, function(a){runningBrushes.minRadius=a}, sliderTypes.log);
+		drawSlider("maxRadius", 1, 100, 25, function(a){runningBrushes.maxRadius=a}, sliderTypes.log);
+		drawSlider("rateRadius", 0.01, 2, 0.2, function(a){runningBrushes.rateRadius=a}, sliderTypes.log);
+		drawSlider("minSpeed", 0.01, 10, 0.1, function(a){runningBrushes.minSpeed=a}, sliderTypes.log);
+		drawSlider("maxSpeed", 1, 100, 50, function(a){runningBrushes.maxSpeed=a}, sliderTypes.log);
+		drawSlider("rateSpeed", 0.01, 2, 0.1, function(a){runningBrushes.rateSpeed=a}, sliderTypes.log);
+		drawSlider("rateAngle", 0.01, Math.PI, Math.PI/36, function(a){runningBrushes.rateAngle=a}, sliderTypes.log);
+		
+		drawSpacer();
+		drawButtonRow([
+			["pause/unpause",runningBrushes.toggleActive],
+			["clear",runningBrushes.clean]
+		])
+		
+		drawSpacer();
+		// choose colors
+		
+		// choose screen
+		drawLabel("screen");
+		drawSlider("red", 0, 255,181, function(a){runningBrushes.bgRed=a}, sliderTypes.integer)
+		drawSlider("green",0,255,213, function(a){runningBrushes.bgGreen=a}, sliderTypes.integer)
+		drawSlider("blue",0,255,245, function(a){runningBrushes.bgBlue=a}, sliderTypes.integer)
+		drawSlider("width",256,1980, 512, function(a){runningBrushes.newWidth=a}, sliderTypes.integer)
+		drawSlider("height",256,1200, 512, function(a){runningBrushes.newHeight=a}, sliderTypes.integer)
+		drawSingleButton("change screen", runningBrushes.applyNewScreen)
+		
+		drawSpacer();
 		//////////////////////////////////////	
-		if (lastY > self.height)
-			self.resize(self.width, lastY);
+		if (lastY > self.height) {
+			self.height = lastY;
+			// todo: it's unnecessary to pass self.width+hei each time
+			self.resize(self.width, self.height);
+			self.repaint();
+		}
 	}
 }
 
@@ -260,7 +310,7 @@ var OptionButton = function(canvas, x, y, w, h, text, callBack) {
 	
 }
 
-var OptionSlider = function(canvas, x, y, w, h, text, minval, maxval, defval, callBack, islog) 
+var OptionSlider = function(canvas, x, y, w, h, text, minval, maxval, defval, callBack, slidertype) 
 {
 	var self = this;
 	
@@ -279,7 +329,7 @@ var OptionSlider = function(canvas, x, y, w, h, text, minval, maxval, defval, ca
 	self.minval = minval;
 	self.maxval = maxval;
 	self.currentval = defval;
-	self.islog = islog;
+	self.slidertype = slidertype;
 	
 	self.isHover = function(x,y) {
 		return x>=self.x0 && x<self.x0 + self.width && y>=self.y0 && y<self.y0 + self.height;
@@ -320,7 +370,7 @@ var OptionSlider = function(canvas, x, y, w, h, text, minval, maxval, defval, ca
 
 		// label
 		ctxt.fillStyle = self.labelColor;
-		ctxt.font = "bold "+self.fontSize+"px CustomFont, sans-serif";
+		ctxt.font = self.fontSize+"px CustomFont, sans-serif";
 		var textLen = ctxt.measureText(self.label).width;
 		ctxt.fillText(self.label, self.x0, self.y0 + self.height / 2 + self.fontSize/2 - 2);
 		
@@ -348,10 +398,10 @@ var OptionSlider = function(canvas, x, y, w, h, text, minval, maxval, defval, ca
 		var sliderWidth = self.height;
 		var xpos = 0;
 		var xrange = self.barLen - sliderWidth;
-		if (self.islog) {
+		if (self.slidertype == sliderTypes.log) {
 			var range = Math.log(self.maxval) - Math.log(self.minval);
 			xpos = (Math.log(self.currentval)-Math.log(self.minval)) * xrange / range;
-		} else {
+		} else if (self.slidertype == sliderTypes.real || self.slidertype == sliderTypes.integer) {
 			var range = self.maxval - self.minval;
 			xpos = (self.currentval - self.minval) * xrange / range;
 		}
@@ -363,12 +413,15 @@ var OptionSlider = function(canvas, x, y, w, h, text, minval, maxval, defval, ca
 	self.pixToValue = function(pix) {
 		var xrange = self.barLen - self.height;
 		var x0 = pix - self.height/2;
-		if (self.islog) {
+		if (self.slidertype == sliderTypes.log) {
 			var range = Math.log(self.maxval) - Math.log(self.minval);
 			self.currentval = Math.exp(x0 * range / xrange + Math.log(self.minval))
-		} else {
+		} else if (self.slidertype == sliderTypes.real) {
 			var range = self.maxval - self.minval;
 			self.currentval = x0 * range / xrange + self.minval;
+		} else if (self.slidertype == sliderTypes.integer) {
+			var range = self.maxval - self.minval;
+			self.currentval = Math.floor(x0 * range / xrange + self.minval + 0.5);
 		}
 		if (self.currentval < self.minval)
 			self.currentval = self.minval;
@@ -381,7 +434,7 @@ var OptionSlider = function(canvas, x, y, w, h, text, minval, maxval, defval, ca
 		var textpos = self.barBegin + self.barLen + 2;
 		self.ctxt.fillRect(textpos, self.y0, self.width - textpos + 3, self.height);
 		self.ctxt.fillStyle = self.labelColor;
-		self.ctxt.font = "bold "+self.fontSize+"px CustomFont, sans-serif";
+		self.ctxt.font = self.fontSize+"px CustomFont, sans-serif";
 		var txt = self.currentval+" ";
 		self.ctxt.fillText(txt, textpos + 2, self.y0 + self.height / 2 + self.fontSize/2 - 2);
 	}

@@ -1,6 +1,31 @@
 var isWebkit = navigator.userAgent.indexOf("AppleWebKit") > -1;
 var optionsMenu;
 
+(function() {
+    var lastTime = 0;
+    var vendors = ['ms', 'moz', 'webkit', 'o'];
+    for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+        window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+        window.cancelAnimationFrame = 
+          window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
+    }
+ 
+    if (!window.requestAnimationFrame)
+        window.requestAnimationFrame = function(callback, element) {
+            var currTime = new Date().getTime();
+            var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+            var id = window.setTimeout(function() { callback(currTime + timeToCall); }, 
+              timeToCall);
+            lastTime = currTime + timeToCall;
+            return id;
+        };
+ 
+    if (!window.cancelAnimationFrame)
+        window.cancelAnimationFrame = function(id) {
+            clearTimeout(id);
+        };
+}());
+
 var RunningBrushes = function() {
 	var self = this;
 	self.prepare = function() {
@@ -10,7 +35,8 @@ var RunningBrushes = function() {
 		
 		optionsMenu = new OptionsMenu(document.getElementById("optionsCanvas"));
 		optionsMenu.height = self.canvas.height;
-		optionsMenu.init();
+		
+		self.setVars();
 
 		// workaround for webkit antialias
 		self.originalWidth = self.canvas.width;
@@ -25,7 +51,19 @@ var RunningBrushes = function() {
 		self.clean();
 	
 		self.agentCount = 15;
+		self.alpha = 0.01;
 		self.agents = [];
+	}
+	
+	self.setVars = function() 
+	{
+		self.minRadius = 0.5;
+		self.maxRadius = 25;
+		self.rateRadius = 0.2;
+		self.minSpeed = 0.1;
+		self.maxSpeed = 50;
+		self.rateSpeed = 0.2;
+		self.rateAngle = Math.PI/36;
 	}
 	
 	self.initAgent = function()
@@ -40,15 +78,14 @@ var RunningBrushes = function() {
 		agent.green = Math.floor(Math.random() * 255);
 		agent.blue = Math.floor(Math.random() * 255);
 		
-		agent.alpha = 0.01;
-		
 		return agent;
 	}
 	
 	
 	self.clean = function() {
 		self.ctxt.globalCompositeOperation = 'source-over';
-		self.ctxt.fillStyle="#B5D5F5";
+		//self.ctxt.fillStyle="#B5D5F5";
+		self.ctxt.fillStyle = "rgba("+self.bgRed+","+self.bgGreen+","+self.bgBlue+","+1+")";
 		self.ctxt.fillRect(self.extraBorder, 0, self.originalWidth, self.canvas.height);
 		self.ctxt.globalCompositeOperation = 'source-atop';
 	}
@@ -57,7 +94,8 @@ var RunningBrushes = function() {
 	self.start = function() {
 		self.prepare();
 		self.startRandomWalk();
-		setInterval(self.iteration, 20);
+		self.active = true;
+		self.iteration();
 	}
 	
 	self.startRandomWalk = function() {
@@ -67,11 +105,38 @@ var RunningBrushes = function() {
 	}
 	
 	self.iteration = function() {
+		if (self.active)
+			window.requestAnimationFrame(self.iteration);
 		for (var i=0; i<self.agentCount; i++) {
 			self.move(self.agents[i]);
 			self.update(self.agents[i]);
 			self.draw(self.agents[i]);
 		}
+	}
+	
+	self.toggleActive = function() {
+		if (self.active)
+			self.active = false;
+		else {
+			self.active = true;
+			self.iteration();
+		}
+	}
+	self.adjustAgentcount = function(count) {
+		if (count < 1)
+			count = 1;
+		if (count < self.agents.length) {
+			self.agents.splice(count,self.agents.length-count);
+			self.agentCount = self.agents.length;
+			return;
+		}
+		if (count > self.agents.length) {
+			for (var ii=self.agents.length;ii<count;ii++)
+				self.agents.push(self.initAgent());
+			self.agentCount = self.agents.length;
+			return;
+		}
+		
 	}
 	
 	// random walk
@@ -94,9 +159,10 @@ var RunningBrushes = function() {
 		//agent.blue = Math.floor(agent.blue + self.changeVar(10)) % 255;
 		//agent.green = Math.floor(agent.green + self.changeVar(10)) % 255;
 		
-		agent.radius = Math.min( Math.max(0.5, agent.radius + self.changeVar(0.2)), 25);
-		agent.speed = Math.min( Math.max(0.1, agent.speed + self.changeVar(0.2)), agent.radius*2);
-		agent.angle = agent.angle + self.changeVar(Math.PI/36);
+		agent.radius = Math.min( Math.max(self.minRadius, agent.radius + self.changeVar(self.rateRadius)), self.maxRadius);
+		var actualMaxSpeed = Math.min(self.maxSpeed, agent.radius*2);
+		agent.speed = Math.min( Math.max(self.minSpeed, agent.speed + self.changeVar(self.rateSpeed)), actualMaxSpeed);
+		agent.angle = agent.angle + self.changeVar(self.rateAngle);
 	}
 	
 	self.changeVar = function(lambda) 
@@ -105,7 +171,7 @@ var RunningBrushes = function() {
 	}
 	
 	self.draw = function(agent) {
-		self.ctxt.fillStyle = "rgba("+agent.red+","+agent.green+","+agent.blue+","+agent.alpha+")";
+		self.ctxt.fillStyle = "rgba("+agent.red+","+agent.green+","+agent.blue+","+self.alpha+")";
 		
 		// normal circle
 		self.ctxt.beginPath();
@@ -133,6 +199,23 @@ var RunningBrushes = function() {
 			self.ctxt.arc(agent.x, agent.y + self.canvas.height, agent.radius, 0, Math.PI*2, true);
 			self.ctxt.fill();
 		}
+	}
+	
+	// screen control
+	self.bgRed = 181;
+	self.bgGreen = 213;
+	self.bgBlue = 245;
+	self.newWidth = 512;
+	self.newHeight = 512;
+	self.applyNewScreen = function() {
+		self.originalWidth = self.newWidth;
+		self.canvas.width = self.originalWidth + self.extraBorder;
+		self.canvas.height = self.newHeight;
+		self.canvas.style.width = self.canvas.width;
+		self.canvas.style.height = self.newHeight;
+		document.bgColor = "#"+self.bgRed.toString(16)+self.bgGreen.toString(16)+self.bgBlue.toString(16);
+		self.clean();
+		optionsMenu.updateSize();
 	}
 }
 
