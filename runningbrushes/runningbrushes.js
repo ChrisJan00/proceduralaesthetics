@@ -1,4 +1,5 @@
 var isWebkit = navigator.userAgent.indexOf("AppleWebKit") > -1;
+var optionsMenu;
 
 var RunningBrushes = function() {
 	var self = this;
@@ -6,6 +7,10 @@ var RunningBrushes = function() {
 	
 		self.canvas = document.getElementById("gameCanvas");
 		self.ctxt = self.canvas.getContext("2d");
+		
+		optionsMenu = new OptionsMenu(document.getElementById("optionsCanvas"));
+		optionsMenu.height = self.canvas.height;
+		optionsMenu.init();
 
 		// workaround for webkit antialias
 		self.originalWidth = self.canvas.width;
@@ -52,7 +57,7 @@ var RunningBrushes = function() {
 	self.start = function() {
 		self.prepare();
 		self.startRandomWalk();
-		setInterval(self.iteration, 10);
+		setInterval(self.iteration, 20);
 	}
 	
 	self.startRandomWalk = function() {
