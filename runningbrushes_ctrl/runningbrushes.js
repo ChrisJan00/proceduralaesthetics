@@ -172,6 +172,11 @@ var RunningBrushes = function() {
 		agent.saturation = 100 - agent.sRand * self.saturationSpread;
 	}
 	
+	self.restartAgents = function() {
+		for (var i=0; i<self.agents.length; i++)
+			self.agents[i] = self.initAgent();
+	}
+	
 	self.restartAgentColors = function() {
 		for (var i=0; i<self.agents.length; i++)
 			self.chooseColor(self.agents[i]);
@@ -185,7 +190,7 @@ var RunningBrushes = function() {
 	
 	self.clean = function() {
 		if (self.agents)
-			self.restartAgentColors();
+			self.restartAgents();
 			
 		self.ctxt.globalCompositeOperation = 'source-over';
 		//self.ctxt.fillStyle="#B5D5F5";
