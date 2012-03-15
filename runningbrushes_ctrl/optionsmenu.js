@@ -177,12 +177,20 @@ var OptionsMenu = function(cnv) {
 //		drawSlider("tonterida", 0.1, 1, 0.5, self.doNothing, false);
 //		drawSlider("alpha", 0.1, 1, 0.5, self.doNothing, true);
 	
-		drawLabel("agent properties");
+		drawLabel("control panel")
+		drawButtonRow([
+			["pause/unpause",runningBrushes.toggleActive],
+			["clear",runningBrushes.clean]
+		])
+		
+		drawSpacer();
+		
+		drawLabel("brush control");
 		drawSlider("count", 1, 150, runningBrushes.agentCount, runningBrushes.adjustAgentcount, sliderTypes.integer);
 		drawSlider("opacity",0.001, 1, runningBrushes.alpha, function(a){runningBrushes.alpha=a}, sliderTypes.log);
 		drawSpacer();
 		
-		drawLabel("agent change");
+		drawLabel("brush evolution");
 		drawSlider("minRadius", 0.1, 10, runningBrushes.minRadius, function(a){runningBrushes.minRadius=a}, sliderTypes.log);
 		drawSlider("maxRadius", 1, 100, runningBrushes.maxRadius, function(a){runningBrushes.maxRadius=a}, sliderTypes.log);
 		drawSlider("rateRadius", 0.01, 2, runningBrushes.rateRadius, function(a){runningBrushes.rateRadius=a}, sliderTypes.log);
@@ -192,14 +200,8 @@ var OptionsMenu = function(cnv) {
 		drawSlider("rateAngle", 0.01, Math.PI, runningBrushes.rateAngle, function(a){runningBrushes.rateAngle=a}, sliderTypes.log);
 		
 		drawSpacer();
-		drawButtonRow([
-			["pause/unpause",runningBrushes.toggleActive],
-			["clear",runningBrushes.clean]
-		])
-		
-		drawSpacer();
 		// choose colors
-		drawLabel("agent colors")
+		drawLabel("brush color")
 		drawSlider("hue",0,360,runningBrushes.hueBase, function(a){runningBrushes.hueBase=a;runningBrushes.adjustAgentColors()}, sliderTypes.integer)
 		drawSlider("hueSpread",0,360,runningBrushes.hueSpread, function(a){runningBrushes.hueSpread=a;runningBrushes.adjustAgentColors()}, sliderTypes.integer)
 		drawSlider("lSpread",0,100,runningBrushes.lightnessSpread, function(a){runningBrushes.lightnessSpread=a;runningBrushes.adjustAgentColors()}, sliderTypes.integer)
@@ -217,6 +219,8 @@ var OptionsMenu = function(cnv) {
 			["tetradic",function(){runningBrushes.colorMode=colorModes.tetradic;runningBrushes.clean()}],
 			["square",function(){runningBrushes.colorMode=colorModes.square;runningBrushes.clean()}],
 		])
+		
+		drawSpacer();
 		
 		// choose screen
 		drawLabel("screen");
