@@ -176,18 +176,18 @@ var OptionsMenu = function(cnv) {
 //		drawSlider("alpha", 0.1, 1, 0.5, self.doNothing, true);
 	
 		drawLabel("agent properties");
-		drawSlider("count", 1, 150, 15, runningBrushes.adjustAgentcount, sliderTypes.integer);
-		drawSlider("opacity",0.001, 1, 0.01, function(a){runningBrushes.alpha=a}, sliderTypes.log);
+		drawSlider("count", 1, 150, runningBrushes.agentCount, runningBrushes.adjustAgentcount, sliderTypes.integer);
+		drawSlider("opacity",0.001, 1, runningBrushes.alpha, function(a){runningBrushes.alpha=a}, sliderTypes.log);
 		drawSpacer();
 		
 		drawLabel("agent change");
-		drawSlider("minRadius", 0.1, 10, 0.5, function(a){runningBrushes.minRadius=a}, sliderTypes.log);
-		drawSlider("maxRadius", 1, 100, 25, function(a){runningBrushes.maxRadius=a}, sliderTypes.log);
-		drawSlider("rateRadius", 0.01, 2, 0.2, function(a){runningBrushes.rateRadius=a}, sliderTypes.log);
-		drawSlider("minSpeed", 0.01, 10, 0.1, function(a){runningBrushes.minSpeed=a}, sliderTypes.log);
-		drawSlider("maxSpeed", 1, 100, 50, function(a){runningBrushes.maxSpeed=a}, sliderTypes.log);
-		drawSlider("rateSpeed", 0.01, 2, 0.1, function(a){runningBrushes.rateSpeed=a}, sliderTypes.log);
-		drawSlider("rateAngle", 0.01, Math.PI, Math.PI/36, function(a){runningBrushes.rateAngle=a}, sliderTypes.log);
+		drawSlider("minRadius", 0.1, 10, runningBrushes.minRadius, function(a){runningBrushes.minRadius=a}, sliderTypes.log);
+		drawSlider("maxRadius", 1, 100, runningBrushes.maxRadius, function(a){runningBrushes.maxRadius=a}, sliderTypes.log);
+		drawSlider("rateRadius", 0.01, 2, runningBrushes.rateRadius, function(a){runningBrushes.rateRadius=a}, sliderTypes.log);
+		drawSlider("minSpeed", 0.01, 10, runningBrushes.minSpeed, function(a){runningBrushes.minSpeed=a}, sliderTypes.log);
+		drawSlider("maxSpeed", 1, 100, runningBrushes.maxSpeed, function(a){runningBrushes.maxSpeed=a}, sliderTypes.log);
+		drawSlider("rateSpeed", 0.01, 2, runningBrushes.rateSpeed, function(a){runningBrushes.rateSpeed=a}, sliderTypes.log);
+		drawSlider("rateAngle", 0.01, Math.PI, runningBrushes.rateAngle, function(a){runningBrushes.rateAngle=a}, sliderTypes.log);
 		
 		drawSpacer();
 		drawButtonRow([
@@ -198,10 +198,10 @@ var OptionsMenu = function(cnv) {
 		drawSpacer();
 		// choose colors
 		drawLabel("agent colors")
-		drawSlider("hue",0,360,120, function(a){runningBrushes.hueBase=a;runningBrushes.adjustAgentColors()}, sliderTypes.integer)
-		drawSlider("hueSpread",0,360,10, function(a){runningBrushes.hueSpread=a;runningBrushes.adjustAgentColors()}, sliderTypes.integer)
-		drawSlider("lSpread",0,100,40, function(a){runningBrushes.lightnessSpread=a;runningBrushes.adjustAgentColors()}, sliderTypes.integer)
-		drawSlider("sSpread",0,100,10, function(a){runningBrushes.saturationSpread=a;runningBrushes.adjustAgentColors()}, sliderTypes.integer)
+		drawSlider("hue",0,360,runningBrushes.hueBase, function(a){runningBrushes.hueBase=a;runningBrushes.adjustAgentColors()}, sliderTypes.integer)
+		drawSlider("hueSpread",0,360,runningBrushes.hueSpread, function(a){runningBrushes.hueSpread=a;runningBrushes.adjustAgentColors()}, sliderTypes.integer)
+		drawSlider("lSpread",0,100,runningBrushes.lightnessSpread, function(a){runningBrushes.lightnessSpread=a;runningBrushes.adjustAgentColors()}, sliderTypes.integer)
+		drawSlider("sSpread",0,100,runningBrushes.saturationSpread, function(a){runningBrushes.saturationSpread=a;runningBrushes.adjustAgentColors()}, sliderTypes.integer)
 		
 		drawButtonRow([
 			["uniform",function(){runningBrushes.colorMode=colorModes.uniform;runningBrushes.clean()}],
@@ -218,11 +218,11 @@ var OptionsMenu = function(cnv) {
 		
 		// choose screen
 		drawLabel("screen");
-		drawSlider("red", 0, 255,181, function(a){runningBrushes.bgRed=a}, sliderTypes.integer)
-		drawSlider("green",0,255,213, function(a){runningBrushes.bgGreen=a}, sliderTypes.integer)
-		drawSlider("blue",0,255,245, function(a){runningBrushes.bgBlue=a}, sliderTypes.integer)
-		drawSlider("width",256,1980, 512, function(a){runningBrushes.newWidth=a}, sliderTypes.integer)
-		drawSlider("height",256,1200, 512, function(a){runningBrushes.newHeight=a}, sliderTypes.integer)
+		drawSlider("red", 0, 255,runningBrushes.bgRed, function(a){runningBrushes.bgRed=a}, sliderTypes.integer)
+		drawSlider("green",0,255,runningBrushes.bgGreen, function(a){runningBrushes.bgGreen=a}, sliderTypes.integer)
+		drawSlider("blue",0,255,runningBrushes.bgBlue, function(a){runningBrushes.bgBlue=a}, sliderTypes.integer)
+		drawSlider("width",256,1980, runningBrushes.newWidth, function(a){runningBrushes.newWidth=a}, sliderTypes.integer)
+		drawSlider("height",256,1200, runningBrushes.newHeight, function(a){runningBrushes.newHeight=a}, sliderTypes.integer)
 		drawSingleButton("change screen", runningBrushes.applyNewScreen)
 		
 		drawSpacer();
