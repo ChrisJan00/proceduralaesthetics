@@ -81,7 +81,7 @@ var RunningBrushes = function() {
 		self.saturationSpread = 10;
 		self.lightnessSpread = 40;
 		self.hueBase = 120;
-		self.hueSpread = 0;
+		self.hueSpread = 10;
 	}
 	
 	self.initAgent = function()

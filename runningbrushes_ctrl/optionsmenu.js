@@ -51,6 +51,7 @@ var OptionsMenu = function(cnv) {
 		self.canvas.addEventListener('mousemove', self.moveEvent, false);
 		self.canvas.addEventListener('mouseup', self.releaseEvent, false);
 		self.canvas.addEventListener('mousedown', self.pressEvent, false);
+		self.canvas.addEventListener('mouseout', self.releaseEvent, false);
 		
 		self.visible = true;
 	}
@@ -61,6 +62,7 @@ var OptionsMenu = function(cnv) {
 		self.canvas.removeEventListener('mousemove', self.moveEvent, false);
 		self.canvas.removeEventListener('mouseup', self.releaseEvent, false);
 		self.canvas.removeEventListener('mousedown', self.pressEvent, false);
+		self.canvas.removeEventListener('mouseout', self.releaseEvent, false);
 		self.visible = false;
 	}
 	
@@ -364,17 +366,19 @@ var OptionSlider = function(canvas, x, y, w, h, text, minval, maxval, defval, ca
 			pix = self.barLen;
 			
 		self.pixToValue(pix);
-		self.drawHead();
-		self.drawCount();
-		self.callback(self.currentval);
+		self.setVal(self.currentval);
 		return true;
 	}
 	
 	self.managePressed = function(x,y) {
 		if (!self.isHover(x,y))
 			return false;
-		self.pressed = true;
-		self.manageHover(x,y);
+		if ( x > self.barBegin + self.barLen) {
+			self.requestValue();
+		} else {
+			self.pressed = true;
+			self.manageHover(x,y);
+		}
 		return true;
 	}
 	
@@ -445,6 +449,31 @@ var OptionSlider = function(canvas, x, y, w, h, text, minval, maxval, defval, ca
 			self.currentval = self.minval;
 		if (self.currentval > self.maxval)
 			self.currentval = self.maxval;
+	}
+	
+	self.requestValue = function() {
+		var newvalueStr = prompt("Enter value for "+self.label, self.currentval+" ");
+		if (newvalueStr != null && newvalueStr != "") {
+			var newval = self.currentval;
+			if (self.slidertype == sliderTypes.real || self.slidertype == sliderTypes.log)
+				newval = parseFloat(newvalueStr);
+			else if (self.slidertype == sliderTypes.integer)
+				newval = parseInt(newvalueStr);
+			if (!isNaN(newval)) {
+				self.setVal(newval);
+			}
+		}
+	}
+	
+	self.setVal = function(newval) {
+		if (newval < self.minval)
+			newval = self.minval;
+		if (newval > self.maxval)
+			newval = self.maxval;
+		self.currentval = newval;
+		self.drawHead();
+		self.drawCount();
+		self.callback(self.currentval);
 	}
 	
 	self.drawCount = function() {
