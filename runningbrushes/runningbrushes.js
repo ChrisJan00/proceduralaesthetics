@@ -26,6 +26,17 @@ var optionsMenu;
         };
 }());
 
+var colorModes = {
+	uniform : 0,
+	monochrome : 1,
+	complementary : 2,
+	analogous : 3,
+	triadic : 4,
+	split_complementary : 5,
+	tetradic : 6,
+	square : 7
+}
+
 var RunningBrushes = function() {
 	var self = this;
 	self.prepare = function() {
@@ -48,11 +59,11 @@ var RunningBrushes = function() {
 		}
 	
 		//self.canvas.addEventListener('mousedown', startRandomWalk, false);
-		self.clean();
-	
+		
 		self.agentCount = 15;
 		self.alpha = 0.01;
 		self.agents = [];
+		self.clean();
 	}
 	
 	self.setVars = function() 
@@ -64,6 +75,13 @@ var RunningBrushes = function() {
 		self.maxSpeed = 50;
 		self.rateSpeed = 0.2;
 		self.rateAngle = Math.PI/36;
+		
+		// colors
+		self.colorMode = colorModes.uniform;
+		self.saturationSpread = 10;
+		self.lightnessSpread = 40;
+		self.hueBase = 120;
+		self.hueSpread = 0;
 	}
 	
 	self.initAgent = function()
@@ -74,15 +92,93 @@ var RunningBrushes = function() {
 		agent.angle = Math.random() * Math.PI * 2;
 		agent.speed = Math.random() * 20;
 		agent.radius = Math.random() * 20 + 1;
-		agent.red = Math.floor(Math.random() * 255);
-		agent.green = Math.floor(Math.random() * 255);
-		agent.blue = Math.floor(Math.random() * 255);
+		self.chooseColor(agent);
 		
 		return agent;
 	}
 	
+	self.chooseColor = function(agent) 
+	{
+		agent.hueRand = Math.random()-0.5;
+		agent.lRand = Math.random() - 0.5;
+		agent.sRand = Math.random();
+		switch (self.colorMode) {
+			case colorModes.uniform : {
+				agent.hueVar = Math.random() * 360;
+				break;
+			}
+			case colorModes.monochrome : {
+				agent.hueVar = 0;
+				break;
+			}
+			case colorModes.complementary : {
+				agent.hueVar = (Math.random() < 0.5 ? 180 : 0);
+				break;
+			}
+			case colorModes.analogous : {
+				agent.hueVar =
+					(Math.random() < 0.5 ? 0 :
+					(Math.random() < 0.5 ? 45 : (-45) ));
+				break;
+			}
+			case colorModes.triadic : {
+				agent.hueVar =
+					(Math.random() < 1/3 ? 0 :
+					(Math.random() < 0.5 ? 120 : (-120) ));
+				break;
+			}
+			case colorModes.split_complementary : {
+				agent.hueVar =
+					(Math.random() < 1/3 ? 0 :
+					(Math.random() < 0.5 ? 180 + 22.5 : 180 - 22.5 ));
+				break;
+			}
+			case colorModes.tetradic : {
+				agent.hueVar =
+					( Math.random() < 0.5 ? 0 : 180 ) +
+					(Math.random() < 0.5 ? 22.5 : (-22.5));
+				break;
+			}
+			case colorModes.square : {
+				agent.hueVar =
+					(Math.random() < 0.5 ? 0 : 180) +
+					(Math.random() < 0.5 ? 0 : 90);
+				break;
+			}
+		}
+		
+		self.adjustColor(agent);
+	}
+	
+	self.adjustColor = function(agent) 
+	{
+		// wrap around	
+		agent.hue = self.hueBase + agent.hueRand * self.hueSpread + agent.hueVar;
+		if (agent.hue < 0)
+			agent.hue += 360;
+		if (agent.hue >= 360)
+			agent.hue -= 360;
+		agent.hue = Math.floor(agent.hue);
+		
+		agent.lightness = 50 + agent.lRand * self.lightnessSpread;
+		agent.saturation = 100 - agent.sRand * self.saturationSpread;
+	}
+	
+	self.restartAgentColors = function() {
+		for (var i=0; i<self.agents.length; i++)
+			self.chooseColor(self.agents[i]);
+	}
+	
+	self.adjustAgentColors = function() {
+		for (var i=0; i<self.agents.length; i++)
+			self.adjustColor(self.agents[i]);
+	}
+	
 	
 	self.clean = function() {
+		if (self.agents)
+			self.restartAgentColors();
+			
 		self.ctxt.globalCompositeOperation = 'source-over';
 		//self.ctxt.fillStyle="#B5D5F5";
 		self.ctxt.fillStyle = "rgba("+self.bgRed+","+self.bgGreen+","+self.bgBlue+","+1+")";
@@ -171,8 +267,8 @@ var RunningBrushes = function() {
 	}
 	
 	self.draw = function(agent) {
-		self.ctxt.fillStyle = "rgba("+agent.red+","+agent.green+","+agent.blue+","+self.alpha+")";
-		
+		//self.ctxt.fillStyle = "rgba("+agent.red+","+agent.green+","+agent.blue+","+self.alpha+")";
+		self.ctxt.fillStyle = "hsla("+agent.hue+","+agent.saturation+"%,"+agent.lightness+"%,"+self.alpha+")";
 		// normal circle
 		self.ctxt.beginPath();
 		self.ctxt.arc(agent.x, agent.y, agent.radius, 0, Math.PI*2, true);

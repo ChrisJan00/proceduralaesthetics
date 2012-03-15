@@ -197,6 +197,24 @@ var OptionsMenu = function(cnv) {
 		
 		drawSpacer();
 		// choose colors
+		drawLabel("agent colors")
+		drawSlider("hue",0,360,120, function(a){runningBrushes.hueBase=a;runningBrushes.adjustAgentColors()}, sliderTypes.integer)
+		drawSlider("hueSpread",0,360,10, function(a){runningBrushes.hueSpread=a;runningBrushes.adjustAgentColors()}, sliderTypes.integer)
+		drawSlider("lSpread",0,100,40, function(a){runningBrushes.lightnessSpread=a;runningBrushes.adjustAgentColors()}, sliderTypes.integer)
+		drawSlider("sSpread",0,100,10, function(a){runningBrushes.saturationSpread=a;runningBrushes.adjustAgentColors()}, sliderTypes.integer)
+		
+		drawButtonRow([
+			["uniform",function(){runningBrushes.colorMode=colorModes.uniform;runningBrushes.clean()}],
+			["monochr",function(){runningBrushes.colorMode=colorModes.monochrome;runningBrushes.clean()}],
+			["complem",function(){runningBrushes.colorMode=colorModes.complementary;runningBrushes.clean()}],
+			["analogous",function(){runningBrushes.colorMode=colorModes.analogous;runningBrushes.clean()}]
+		])
+		drawButtonRow([
+			["triadric",function(){runningBrushes.colorMode=colorModes.triadic;runningBrushes.clean()}],
+			["s_compl",function(){runningBrushes.colorMode=colorModes.split_complementary;runningBrushes.clean()}],
+			["tetradic",function(){runningBrushes.colorMode=colorModes.tetradic;runningBrushes.clean()}],
+			["square",function(){runningBrushes.colorMode=colorModes.square;runningBrushes.clean()}],
+		])
 		
 		// choose screen
 		drawLabel("screen");
