@@ -90,8 +90,16 @@ var RunningBrushes = function() {
 		agent.x = Math.random() * self.originalWidth;
 		agent.y = Math.random() * self.originalWidth;
 		agent.angle = Math.random() * Math.PI * 2;
-		agent.speed = Math.random() * 20;
-		agent.radius = Math.random() * 20 + 1;
+		
+		var radiusRange = Math.max(self.maxRadius-self.minRadius,0);
+		var minRadius = Math.min(self.maxRadius, self.minRadius);
+		agent.radius = Math.random() * radiusRange + minRadius;
+		
+		var actualMaxSpeed = Math.min(self.maxSpeed, agent.radius*2);
+		var speedRange = Math.max(actualMaxSpeed-self.minSpeed, 0);
+		var minSpeed = Math.min(actualMaxSpeed, self.minSpeed);
+		agent.speed = Math.random() * speedRange + minSpeed;
+		
 		self.chooseColor(agent);
 		
 		return agent;
@@ -239,10 +247,10 @@ var RunningBrushes = function() {
 	self.move = function(agent) {
 		agent.x = agent.x + agent.speed * Math.cos(agent.angle);
 		agent.y = agent.y + agent.speed * Math.sin(agent.angle);
-		if (agent.x < 0)
-			agent.x += self.canvas.width;
+		if (agent.x < self.extraBorder)
+			agent.x += self.originalWidth;
 		if (agent.x >= self.canvas.width)
-			agent.x -= self.canvas.width;
+			agent.x -= self.originalWidth;
 		if (agent.y < 0)
 			agent.y += self.canvas.height;
 		if (agent.y >= self.canvas.height)
@@ -293,6 +301,27 @@ var RunningBrushes = function() {
 		if (agent.y - agent.radius < 0) {
 			self.ctxt.beginPath();
 			self.ctxt.arc(agent.x, agent.y + self.canvas.height, agent.radius, 0, Math.PI*2, true);
+			self.ctxt.fill();
+		}
+		// off-limits (diagonal)
+		if (agent.x + agent.radius > self.canvas.width && agent.y + agent.radius > self.canvas.height) {
+			self.ctxt.beginPath();
+			self.ctxt.arc(agent.x - self.originalWidth, agent.y - self.canvas.height, agent.radius, 0, Math.PI*2, true);
+			self.ctxt.fill();
+		}
+		if (agent.x + agent.radius > self.canvas.width && agent.y - agent.radius < 0) {
+			self.ctxt.beginPath();
+			self.ctxt.arc(agent.x - self.originalWidth, agent.y  + self.canvas.height, agent.radius, 0, Math.PI*2, true);
+			self.ctxt.fill();
+		}
+		if (agent.x - agent.radius < self.extraBorder  && agent.y + agent.radius > self.canvas.height) {
+			self.ctxt.beginPath();
+			self.ctxt.arc(agent.x + self.originalWidth, agent.y - self.canvas.height, agent.radius, 0, Math.PI*2, true);
+			self.ctxt.fill();
+		}
+		if (agent.x - agent.radius < self.extraBorder  && agent.y - agent.radius < 0) {
+			self.ctxt.beginPath();
+			self.ctxt.arc(agent.x + self.originalWidth, agent.y + self.canvas.height, agent.radius, 0, Math.PI*2, true);
 			self.ctxt.fill();
 		}
 	}
