@@ -180,6 +180,7 @@ var OptionsMenu = function(cnv) {
 		drawLabel("control panel")
 		drawButtonRow([
 			["pause/unpause",runningBrushes.toggleActive],
+			["step", function(){if (!runningBrushes.active) runningBrushes.iteration();}],
 			["clear",runningBrushes.clean]
 		])
 		
