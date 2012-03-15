@@ -1,4 +1,5 @@
 var isWebkit = navigator.userAgent.indexOf("AppleWebKit") > -1;
+var optionsMenu;
 
 (function() {
     var lastTime = 0;
@@ -25,12 +26,28 @@ var isWebkit = navigator.userAgent.indexOf("AppleWebKit") > -1;
         };
 }());
 
+var colorModes = {
+	uniform : 0,
+	monochrome : 1,
+	complementary : 2,
+	analogous : 3,
+	triadic : 4,
+	split_complementary : 5,
+	tetradic : 6,
+	square : 7
+}
+
 var RunningBrushes = function() {
 	var self = this;
 	self.prepare = function() {
 	
 		self.canvas = document.getElementById("gameCanvas");
 		self.ctxt = self.canvas.getContext("2d");
+		
+		optionsMenu = new OptionsMenu(document.getElementById("optionsCanvas"));
+		optionsMenu.height = self.canvas.height;
+		
+		self.setVars();
 
 		// workaround for webkit antialias
 		self.originalWidth = self.canvas.width;
@@ -42,10 +59,29 @@ var RunningBrushes = function() {
 		}
 	
 		//self.canvas.addEventListener('mousedown', startRandomWalk, false);
-		self.clean();
-	
+		
 		self.agentCount = 15;
+		self.alpha = 0.01;
 		self.agents = [];
+		self.clean();
+	}
+	
+	self.setVars = function() 
+	{
+		self.minRadius = 0.5;
+		self.maxRadius = 25;
+		self.rateRadius = 0.2;
+		self.minSpeed = 0.1;
+		self.maxSpeed = 50;
+		self.rateSpeed = 0.2;
+		self.rateAngle = Math.PI/36;
+		
+		// colors
+		self.colorMode = colorModes.uniform;
+		self.saturationSpread = 10;
+		self.lightnessSpread = 40;
+		self.hueBase = 120;
+		self.hueSpread = 0;
 	}
 	
 	self.initAgent = function()
@@ -54,21 +90,106 @@ var RunningBrushes = function() {
 		agent.x = Math.random() * self.originalWidth;
 		agent.y = Math.random() * self.originalWidth;
 		agent.angle = Math.random() * Math.PI * 2;
-		agent.speed = Math.random() * 20;
-		agent.radius = Math.random() * 20 + 1;
-		agent.red = Math.floor(Math.random() * 255);
-		agent.green = Math.floor(Math.random() * 255);
-		agent.blue = Math.floor(Math.random() * 255);
 		
-		agent.alpha = 0.01;
+		var radiusRange = Math.max(self.maxRadius-self.minRadius,0);
+		var minRadius = Math.min(self.maxRadius, self.minRadius);
+		agent.radius = Math.random() * radiusRange + minRadius;
+		
+		var actualMaxSpeed = Math.min(self.maxSpeed, agent.radius*2);
+		var speedRange = Math.max(actualMaxSpeed-self.minSpeed, 0);
+		var minSpeed = Math.min(actualMaxSpeed, self.minSpeed);
+		agent.speed = Math.random() * speedRange + minSpeed;
+		
+		self.chooseColor(agent);
 		
 		return agent;
 	}
 	
+	self.chooseColor = function(agent) 
+	{
+		agent.hueRand = Math.random()-0.5;
+		agent.lRand = Math.random() - 0.5;
+		agent.sRand = Math.random();
+		switch (self.colorMode) {
+			case colorModes.uniform : {
+				agent.hueVar = Math.random() * 360;
+				break;
+			}
+			case colorModes.monochrome : {
+				agent.hueVar = 0;
+				break;
+			}
+			case colorModes.complementary : {
+				agent.hueVar = (Math.random() < 0.5 ? 180 : 0);
+				break;
+			}
+			case colorModes.analogous : {
+				agent.hueVar =
+					(Math.random() < 0.5 ? 0 :
+					(Math.random() < 0.5 ? 45 : (-45) ));
+				break;
+			}
+			case colorModes.triadic : {
+				agent.hueVar =
+					(Math.random() < 1/3 ? 0 :
+					(Math.random() < 0.5 ? 120 : (-120) ));
+				break;
+			}
+			case colorModes.split_complementary : {
+				agent.hueVar =
+					(Math.random() < 1/3 ? 0 :
+					(Math.random() < 0.5 ? 180 + 22.5 : 180 - 22.5 ));
+				break;
+			}
+			case colorModes.tetradic : {
+				agent.hueVar =
+					( Math.random() < 0.5 ? 0 : 180 ) +
+					(Math.random() < 0.5 ? 22.5 : (-22.5));
+				break;
+			}
+			case colorModes.square : {
+				agent.hueVar =
+					(Math.random() < 0.5 ? 0 : 180) +
+					(Math.random() < 0.5 ? 0 : 90);
+				break;
+			}
+		}
+		
+		self.adjustColor(agent);
+	}
+	
+	self.adjustColor = function(agent) 
+	{
+		// wrap around	
+		agent.hue = self.hueBase + agent.hueRand * self.hueSpread + agent.hueVar;
+		if (agent.hue < 0)
+			agent.hue += 360;
+		if (agent.hue >= 360)
+			agent.hue -= 360;
+		agent.hue = Math.floor(agent.hue);
+		
+		agent.lightness = 50 + agent.lRand * self.lightnessSpread;
+		agent.saturation = 100 - agent.sRand * self.saturationSpread;
+	}
+	
+	self.restartAgentColors = function() {
+		for (var i=0; i<self.agents.length; i++)
+			self.chooseColor(self.agents[i]);
+	}
+	
+	self.adjustAgentColors = function() {
+		for (var i=0; i<self.agents.length; i++)
+			self.adjustColor(self.agents[i]);
+	}
+	
 	
 	self.clean = function() {
+		if (self.agents)
+			self.restartAgentColors();
+			
 		self.ctxt.globalCompositeOperation = 'source-over';
-		self.ctxt.fillStyle="#B5D5F5";
+		//self.ctxt.fillStyle="#B5D5F5";
+		self.ctxt.fillStyle = "rgba("+self.bgRed+","+self.bgGreen+","+self.bgBlue+","+1+")";
 		self.ctxt.fillRect(self.extraBorder, 0, self.originalWidth, self.canvas.height);
 		self.ctxt.globalCompositeOperation = 'source-atop';
 	}
@@ -77,6 +198,7 @@ var RunningBrushes = function() {
 	self.start = function() {
 		self.prepare();
 		self.startRandomWalk();
+		self.active = true;
 		self.iteration();
 	}
 	
@@ -87,12 +209,38 @@ var RunningBrushes = function() {
 	}
 	
 	self.iteration = function() {
-		window.requestAnimationFrame(self.iteration);
+		if (self.active)
+			window.requestAnimationFrame(self.iteration);
 		for (var i=0; i<self.agentCount; i++) {
 			self.move(self.agents[i]);
 			self.update(self.agents[i]);
 			self.draw(self.agents[i]);
 		}
+	}
+	
+	self.toggleActive = function() {
+		if (self.active)
+			self.active = false;
+		else {
+			self.active = true;
+			self.iteration();
+		}
+	}
+	self.adjustAgentcount = function(count) {
+		if (count < 1)
+			count = 1;
+		if (count < self.agents.length) {
+			self.agents.splice(count,self.agents.length-count);
+			self.agentCount = self.agents.length;
+			return;
+		}
+		if (count > self.agents.length) {
+			for (var ii=self.agents.length;ii<count;ii++)
+				self.agents.push(self.initAgent());
+			self.agentCount = self.agents.length;
+			return;
+		}
+		
 	}
 	
 	// random walk
@@ -115,9 +263,10 @@ var RunningBrushes = function() {
 		//agent.blue = Math.floor(agent.blue + self.changeVar(10)) % 255;
 		//agent.green = Math.floor(agent.green + self.changeVar(10)) % 255;
 		
-		agent.radius = Math.min( Math.max(0.5, agent.radius + self.changeVar(0.2)), 25);
-		agent.speed = Math.min( Math.max(0.1, agent.speed + self.changeVar(0.2)), agent.radius*2);
-		agent.angle = agent.angle + self.changeVar(Math.PI/36);
+		agent.radius = Math.min( Math.max(self.minRadius, agent.radius + self.changeVar(self.rateRadius)), self.maxRadius);
+		var actualMaxSpeed = Math.min(self.maxSpeed, agent.radius*2);
+		agent.speed = Math.min( Math.max(self.minSpeed, agent.speed + self.changeVar(self.rateSpeed)), actualMaxSpeed);
+		agent.angle = agent.angle + self.changeVar(self.rateAngle);
 	}
 	
 	self.changeVar = function(lambda) 
@@ -126,8 +275,8 @@ var RunningBrushes = function() {
 	}
 	
 	self.draw = function(agent) {
-		self.ctxt.fillStyle = "rgba("+agent.red+","+agent.green+","+agent.blue+","+agent.alpha+")";
-		
+		//self.ctxt.fillStyle = "rgba("+agent.red+","+agent.green+","+agent.blue+","+self.alpha+")";
+		self.ctxt.fillStyle = "hsla("+agent.hue+","+agent.saturation+"%,"+agent.lightness+"%,"+self.alpha+")";
 		// normal circle
 		self.ctxt.beginPath();
 		self.ctxt.arc(agent.x, agent.y, agent.radius, 0, Math.PI*2, true);
@@ -175,6 +324,23 @@ var RunningBrushes = function() {
 			self.ctxt.arc(agent.x + self.originalWidth, agent.y + self.canvas.height, agent.radius, 0, Math.PI*2, true);
 			self.ctxt.fill();
 		}
+	}
+	
+	// screen control
+	self.bgRed = 181;
+	self.bgGreen = 213;
+	self.bgBlue = 245;
+	self.newWidth = 512;
+	self.newHeight = 512;
+	self.applyNewScreen = function() {
+		self.originalWidth = self.newWidth;
+		self.canvas.width = self.originalWidth + self.extraBorder;
+		self.canvas.height = self.newHeight;
+		self.canvas.style.width = self.canvas.width;
+		self.canvas.style.height = self.newHeight;
+		document.bgColor = "#"+self.bgRed.toString(16)+self.bgGreen.toString(16)+self.bgBlue.toString(16);
+		self.clean();
+		optionsMenu.updateSize();
 	}
 }
 
