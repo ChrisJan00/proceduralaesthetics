@@ -367,12 +367,17 @@ var RunningBrushes = function() {
 	self.newWidth = 512;
 	self.newHeight = 512;
 	self.applyNewScreen = function() {
+		function paddedHexStr(number) {
+			var str = number.toString(16).substr(0,2);
+			return "00".substr(0,2-str.length) + str;
+		}
 		self.originalWidth = self.newWidth;
 		self.canvas.width = self.originalWidth + self.extraBorder;
 		self.canvas.height = self.newHeight;
 		self.canvas.style.width = self.canvas.width;
 		self.canvas.style.height = self.newHeight;
-		document.bgColor = "#"+self.bgRed.toString(16)+self.bgGreen.toString(16)+self.bgBlue.toString(16);
+		
+		document.bgColor = "#"+paddedHexStr(self.bgRed)+paddedHexStr(self.bgGreen)+paddedHexStr(self.bgBlue);
 		self.clean();
 		optionsMenu.updateSize();
 	}
