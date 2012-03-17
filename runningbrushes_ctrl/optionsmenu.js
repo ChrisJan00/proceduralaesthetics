@@ -205,7 +205,9 @@ var OptionsMenu = function(cnv) {
 		drawLabel("brush color")
 		drawSlider("hue",0,360,runningBrushes.hueBase, function(a){runningBrushes.hueBase=a;runningBrushes.adjustAgentColors()}, sliderTypes.integer)
 		drawSlider("hueSpread",0,360,runningBrushes.hueSpread, function(a){runningBrushes.hueSpread=a;runningBrushes.adjustAgentColors()}, sliderTypes.integer)
+		drawSlider("lightness",0,100,runningBrushes.lightnessBase, function(a){runningBrushes.lightnessBase=a;runningBrushes.adjustAgentColors()}, sliderTypes.integer)
 		drawSlider("lSpread",0,100,runningBrushes.lightnessSpread, function(a){runningBrushes.lightnessSpread=a;runningBrushes.adjustAgentColors()}, sliderTypes.integer)
+		drawSlider("saturation",0,100,runningBrushes.saturationBase, function(a){runningBrushes.saturationBase=a;runningBrushes.adjustAgentColors()}, sliderTypes.integer)
 		drawSlider("sSpread",0,100,runningBrushes.saturationSpread, function(a){runningBrushes.saturationSpread=a;runningBrushes.adjustAgentColors()}, sliderTypes.integer)
 		
 		drawButtonRow([

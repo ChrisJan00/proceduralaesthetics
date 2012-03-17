@@ -78,10 +78,15 @@ var RunningBrushes = function() {
 		
 		// colors
 		self.colorMode = colorModes.uniform;
+		self.saturationBase = 100;
 		self.saturationSpread = 10;
+		self.lightnessBase = 50;
 		self.lightnessSpread = 40;
 		self.hueBase = 120;
 		self.hueSpread = 10;
+		
+		self.adjustSaturationBase();
+		self.adjustLightnessBase();
 	}
 	
 	self.initAgent = function()
@@ -108,7 +113,7 @@ var RunningBrushes = function() {
 	self.chooseColor = function(agent) 
 	{
 		agent.hueRand = Math.random()-0.5;
-		agent.lRand = Math.random() - 0.5;
+		agent.lRand = Math.random();
 		agent.sRand = Math.random();
 		switch (self.colorMode) {
 			case colorModes.uniform : {
@@ -168,8 +173,30 @@ var RunningBrushes = function() {
 			agent.hue -= 360;
 		agent.hue = Math.floor(agent.hue);
 		
-		agent.lightness = 50 + agent.lRand * self.lightnessSpread;
-		agent.saturation = 100 - agent.sRand * self.saturationSpread;
+		agent.lightness = self.lightnessStart + agent.lRand * self.lightnessSpread;
+		agent.saturation = self.saturationStart + agent.sRand * self.saturationSpread;
+	}
+	
+	self.adjustLightnessBase = function( ) {
+		var lb = self.lightnessBase;
+		var ls = self.lightnessSpread;
+		var lmin = lb - ls/2;
+		if (lmin < 0)
+			lmin = 0;
+		if (lmin + ls > 100)
+			lmin = 100 - ls;
+		self.lightnessStart = lmin;
+	}
+	
+	self.adjustSaturationBase = function( ) {
+		var sb = self.saturationBase;
+		var ss = self.saturationSpread;
+		var smin = sb - ss/2;
+		if (smin < 0)
+			smin = 0;
+		if (smin + ss > 100)
+			smin = 100 - ss;
+		self.saturationStart = smin;
 	}
 	
 	self.restartAgents = function() {
@@ -183,6 +210,8 @@ var RunningBrushes = function() {
 	}
 	
 	self.adjustAgentColors = function() {
+		self.adjustLightnessBase();
+		self.adjustSaturationBase();
 		for (var i=0; i<self.agents.length; i++)
 			self.adjustColor(self.agents[i]);
 	}
