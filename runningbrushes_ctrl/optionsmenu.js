@@ -195,8 +195,8 @@ var OptionsMenu = function(cnv) {
 		drawSlider("minRadius", 0.5, 25, runningBrushes.minRadius, function(a){runningBrushes.minRadius=a}, sliderTypes.log);
 		drawSlider("maxRadius", 1, 100, runningBrushes.maxRadius, function(a){runningBrushes.maxRadius=a}, sliderTypes.log);
 		drawSlider("rateRadius", 0.01, 2, runningBrushes.rateRadius, function(a){runningBrushes.rateRadius=a}, sliderTypes.log);
-		drawSlider("minSpeed", 0.01, 10, runningBrushes.minSpeed, function(a){runningBrushes.minSpeed=a}, sliderTypes.log);
-		drawSlider("maxSpeed", 0.1, 100, runningBrushes.maxSpeed, function(a){runningBrushes.maxSpeed=a}, sliderTypes.log);
+		drawSlider("minSpeed", 0.01, 150, runningBrushes.minSpeed, function(a){runningBrushes.minSpeed=a}, sliderTypes.log);
+		drawSlider("maxSpeed", 0.1, 150, runningBrushes.maxSpeed, function(a){runningBrushes.maxSpeed=a}, sliderTypes.log);
 		drawSlider("rateSpeed", 0.01, 2, runningBrushes.rateSpeed, function(a){runningBrushes.rateSpeed=a}, sliderTypes.log);
 		drawSlider("rateAngle", 0.01, Math.PI, runningBrushes.rateAngle, function(a){runningBrushes.rateAngle=a}, sliderTypes.log);
 		

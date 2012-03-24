@@ -101,8 +101,9 @@ var RunningBrushes = function() {
 		agent.radius = Math.random() * radiusRange + minRadius;
 		
 		var actualMaxSpeed = Math.min(self.maxSpeed, agent.radius*2);
-		var speedRange = Math.max(actualMaxSpeed-self.minSpeed, 0);
-		var minSpeed = Math.min(actualMaxSpeed, self.minSpeed);
+		var actualMinSpeed = Math.min(self.minSpeed, agent.radius*2);
+		var speedRange = Math.max(actualMaxSpeed-actualMinSpeed, 0);
+		var minSpeed = Math.min(actualMaxSpeed, actualMinSpeed);
 		agent.speed = Math.random() * speedRange + minSpeed;
 		
 		self.chooseColor(agent);
@@ -299,7 +300,8 @@ var RunningBrushes = function() {
 		
 		agent.radius = Math.min( Math.max(self.minRadius, agent.radius + self.changeVar(self.rateRadius)), self.maxRadius);
 		var actualMaxSpeed = Math.min(self.maxSpeed, agent.radius*2);
-		agent.speed = Math.min( Math.max(self.minSpeed, agent.speed + self.changeVar(self.rateSpeed)), actualMaxSpeed);
+		var actualMinSpeed = Math.min(self.minSpeed, agent.radius*2);
+		agent.speed = Math.min( Math.max(actualMinSpeed, agent.speed + self.changeVar(self.rateSpeed)), actualMaxSpeed);
 		agent.angle = agent.angle + self.changeVar(self.rateAngle);
 	}
 	
